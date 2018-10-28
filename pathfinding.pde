@@ -53,6 +53,9 @@ void setup() {
    }
    */
 
+
+
+
   nodes = new ArrayList<Node>();
   for (int x =0; x<tiles.length; x++) {
     for (int y=0; y<tiles[x].length; y++) {
@@ -61,6 +64,10 @@ void setup() {
       }
     }
   }
+
+  Node characterNode = nodes.get(floor(random(0, nodes.size())));
+  character.setPos(characterNode.getPos().x*tileSize, characterNode.getPos().y*tileSize);
+  character.setPath(new ArrayList<Node>());
 }
 
 void draw() {
@@ -165,9 +172,32 @@ void mousePressed() {
     for (int x=0; x<tiles.length; x++) {
       for (int y=0; y<tiles[x].length; y++) {
         if (mouseX >= x*tileSize && mouseX < (x+1)*tileSize && mouseY >= y*tileSize && mouseY < (y+1)*tileSize) {
-          if (tiles[x][y] == 0) {
-            character.setPos(x*tileSize, y*tileSize);
-            character.setPath(new ArrayList<Node>());
+          if (tiles[x][y] == 1) {
+            tiles[x][y] = 0;
+            nodes.add(new Node(x, y));
+
+
+            Node start = null;
+            Node end = null;
+
+            for (Node node : nodes) {
+              if (character.getPos().x >= node.getPos().x*tileSize && character.getPos().x < (node.getPos().x+1)*tileSize && character.getPos().y >= node.getPos().y*tileSize && character.getPos().y < (node.getPos().y+1)*tileSize) {
+                start = node;
+              }
+            }
+
+
+            for (Node node : nodes) {
+              if (character.getDest().x == node.getPos().x && character.getDest().y == node.getPos().y ) {
+                end = node;
+              }
+            }
+
+
+
+            if (start != null && end != null) {
+              character.setPath(findPath(start, end, nodes));
+            }
           }
         }
       }
@@ -187,9 +217,12 @@ void mousePressed() {
     }
     if (start != null && end != null) {
       character.setPath(findPath(start, end, nodes));
+      character.setDest((int)end.getPos().x, (int)end.getPos().y);
     }
   }
 }
+
+
 
 void keyPressed() {
   if (key == ' ') {

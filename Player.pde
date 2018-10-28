@@ -1,11 +1,10 @@
-class Character{
-  float xPos, yPos;
-  int xDest, yDest;
+class Player{
+  float xPos, yPos, xDest, yDest;
   float size;
   float speed = 5;
   ArrayList<Node> path;
   
-  Character(float xPos, float yPos, float size){
+  Player(float xPos, float yPos, float size){
     this.xPos = xPos;
     this.yPos = yPos;
     this.size = size;
@@ -14,17 +13,17 @@ class Character{
   
   void update() {
     if(path.size() != 0){
-      Node nextTile = path.get(path.size()-1);
-      if (xPos == nextTile.getPos().x*size && yPos == nextTile.getPos().y*size){
-        path.remove(nextTile);
+      Node dest = path.get(path.size()-1);
+      if (xPos == dest.getPos().x*size && yPos == dest.getPos().y*size){
+        path.remove(dest);
       } else {
-        if(speed >= abs(xPos - nextTile.getPos().x*size)){
-          xPos = nextTile.getPos().x*size;
+        if(speed >= abs(xPos - dest.getPos().x*size)){
+          xPos = dest.getPos().x*size;
         }
-        if(speed>= abs(yPos - nextTile.getPos().y*size)){
-          yPos = nextTile.getPos().y*size;
+        if(speed>= abs(yPos - dest.getPos().y*size)){
+          yPos = dest.getPos().y*size;
         }
-        PVector movementVector = new PVector(nextTile.getPos().x*size - xPos, nextTile.getPos().y*size-yPos);
+        PVector movementVector = new PVector(dest.getPos().x*size - xPos, dest.getPos().y*size-yPos);
         movementVector.normalize();
         movementVector.mult(speed);
         xPos+=movementVector.x;
@@ -43,7 +42,7 @@ class Character{
     this.yPos = yPos;
   }
   
-  void setDest(int xDest, int yDest){
+  void setDest(float xDest, float yDest){
     this.xDest = xDest;
     this.yDest = yDest;
   }
@@ -54,9 +53,5 @@ class Character{
   
   PVector getPos() {
     return new PVector(xPos, yPos);
-  }
-  
-  PVector getDest() {
-    return new PVector(xDest, yDest);
   }
 }
