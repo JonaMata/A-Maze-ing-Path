@@ -1,10 +1,20 @@
+/*  A-Maze-ing by Jonathan Matarazzi 28-10-2018
+ This 
+ 
+ */
+
+
 import java.util.Collections;
+
 
 Pathfinder pathfinder;
 MazeGenerator mazeGenerator;
 
 
+//Create a 2-dimensional array for the tilemap
 int[][] tiles;
+
+
 ArrayList<Node> nodes;
 int tileSize = 50;
 int gridWidth, gridHeight;
@@ -18,12 +28,14 @@ PImage characterImage;
 Character character;
 
 void setup() {
-  //size(600, 600);
-  fullScreen(P3D);
-  
+  size(600, 600, P3D);
+  //fullScreen(P3D);
+
   pathfinder = new Pathfinder();
   mazeGenerator = new MazeGenerator();
 
+
+  //Load all the needed images
   zeroWall = loadImage("zero_wall.png");
   singleWall = loadImage("single_wall.png");
   doubleWall = loadImage("double_wall.png");
@@ -37,8 +49,12 @@ void setup() {
 
   characterImage = loadImage("character.png");
 
+
+  //Create a new character out of view
   character = new Character(-tileSize, -tileSize);
 
+
+  //Calculate the amount rows and columns of the grid and make sure it has an odd number of rows and columns
   gridWidth = width/tileSize;
   if (gridWidth % 2 == 0) {
     gridWidth-=1;
@@ -48,6 +64,8 @@ void setup() {
     gridHeight-=1;
   }
 
+
+  //Create a maze with the calculated amound of rows and columns
   tiles = mazeGenerator.createMaze(gridWidth, gridHeight);
 
 
@@ -62,7 +80,7 @@ void setup() {
 
 
 
-
+  //Create nodes for all the floor tiles
   nodes = new ArrayList<Node>();
   for (int x =0; x<tiles.length; x++) {
     for (int y=0; y<tiles[x].length; y++) {
@@ -72,17 +90,22 @@ void setup() {
     }
   }
 
+  //Place the character on a random node
   Node characterNode = nodes.get(floor(random(0, nodes.size())));
   character.setPos(characterNode.getPos().x*tileSize, characterNode.getPos().y*tileSize);
   character.setPath(new ArrayList<Node>());
 }
 
 void draw() {
+  println(mouseX+" , "+mouseY);
   background(250);
 
+  //Draw each waal tile
   for (int x=0; x<tiles.length; x++) {
     for (int y=0; y<tiles[x].length; y++) {
       if (tiles[x][y] == 1) {
+
+        //Check where the wall has neighbours
         int right = 0;
         int bottom = 0;
         int left = 0;
@@ -101,19 +124,19 @@ void draw() {
           top = tiles[x][y-1];
         }
 
+        //Pass an array containing data about where the wall has neighbours to the displayWall function
         int[] neighbours = {top, right, bottom, left};
         displayWall(x, y, neighbours);
       }
-
-      fill(255-(tiles[x][y]*255));
-      rectMode(CORNER);
-      //rect(x*tileSize, y*tileSize, tileSize, tileSize);
     }
   }
 
+  //Display all nodes
   for (Node node : nodes) {
     node.display();
   }
+
+  //Update and display the character
   character.setSpeed(nodes);
   character.update();
   character.display();
@@ -123,10 +146,13 @@ void displayWall(float wallX, float wallY, int[] connections) {
   PImage wallImage = zeroWall;
   int rotation = 0;
   int connectionSum = 0;
+
+  //Get the amount of neighbours a wall has
   for (int connection : connections) {
     connectionSum += connection;
   }
 
+  //Execute the function corresponding to the amount of neighbours to set the correct image and rotation for the wall
   switch(connectionSum) {
   case 0:
     wallImage = zeroWall;
@@ -165,7 +191,7 @@ void displayWall(float wallX, float wallY, int[] connections) {
   }
 
 
-
+  //Rotate and draw the image of the wall
   pushMatrix();
   translate((wallX+0.5)*tileSize, (wallY+0.5)*tileSize);
   rotate(radians(rotation));
@@ -175,63 +201,48 @@ void displayWall(float wallX, float wallY, int[] connections) {
 }
 
 void mousePressed() {
+
+  //Check what mouse button has been pressed
+
   if (mouseButton == LEFT) {
-    for (int x=0; x<tiles.length; x++) {
-      for (int y=0; y<tiles[x].length; y++) {
-        if (mouseX >= x*tileSize && mouseX < (x+1)*tileSize && mouseY >= y*tileSize && mouseY < (y+1)*tileSize) {
-          if (tiles[x][y] == 1) {
-            tiles[x][y] = 0;
-            nodes.add(new Node(x, y));
+    //Check which tile has been pressed
+    int xTile = floor(mouseX/tileSize);
+    int yTile = floor(mouseY/tileSize);
+    if (xTile < tiles.length && yTile < tiles[0].length) {
+      
+      //If the pressed tile is a wall, transform it into a floor tile and create a node for it. Then update the path of character
+      
+      if (tiles[xTile][yTile] == 1) {
+        
+        tiles[xTile][yTile] = 0;
+        nodes.add(new Node(xTile, yTile));
 
 
-            Node start = null;
-            Node end = null;
+        Node start = character.getNode(nodes);
+        Node end = character.getDestNode(nodes);
 
-            for (Node node : nodes) {
-              if (character.getPos().x >= node.getPos().x*tileSize && character.getPos().x < (node.getPos().x+1)*tileSize && character.getPos().y >= node.getPos().y*tileSize && character.getPos().y < (node.getPos().y+1)*tileSize) {
-                start = node;
-              }
-            }
-
-
-            for (Node node : nodes) {
-              if (character.getDest().x == node.getPos().x && character.getDest().y == node.getPos().y ) {
-                end = node;
-              }
-            }
-
-
-
-            if (start != null && end != null) {
-              character.setPath(pathfinder.findPath(start, end, nodes));
-            }
-          }
+        if (start != null && end != null) {
+          character.setPath(pathfinder.findPath(start, end, nodes));
         }
       }
     }
   } else if (mouseButton == RIGHT) {
-    Node start = null;
+    //Create path from the current position of the character to the clicked position
+    
+    Node start = character.getNode(nodes);
     Node end = null;
+    
+    //get the clicked tile
     for (Node node : nodes) {
-      if (character.getPos().x >= node.getPos().x*tileSize && character.getPos().x < (node.getPos().x+1)*tileSize && character.getPos().y >= node.getPos().y*tileSize && character.getPos().y < (node.getPos().y+1)*tileSize) {
-        start = node;
-      }
-    }
-    for (Node node : nodes) {
-      if (mouseX >= node.getPos().x*tileSize && mouseX < (node.getPos().x+1)*tileSize && mouseY >= node.getPos().y*tileSize && mouseY < (node.getPos().y+1)*tileSize) {
+      if (node.pointIsOnNode(mouseX, mouseY)) {
         end = node;
       }
     }
+    
+    //If the start and end are valid nodes, create and set the path and set the destination
     if (start != null && end != null) {
       character.setPath(pathfinder.findPath(start, end, nodes));
       character.setDest((int)end.getPos().x, (int)end.getPos().y);
     }
-  }
-}
-
-
-
-void keyPressed() {
-  if (key == ' ') {
   }
 }

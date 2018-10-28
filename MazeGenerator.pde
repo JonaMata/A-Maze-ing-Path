@@ -10,12 +10,13 @@ class MazeGenerator {
   int[][] createMaze(int mazeWidth, int mazeHeight) {
     int[][] maze = new int[mazeWidth][mazeHeight];
 
-    for (int x = 0; x<maze.length; x++) {
-      for (int y = 0; y<maze[x].length; y++) {
+    for (int x = 0; x<mazeWidth; x++) {
+      for (int y = 0; y<mazeHeight; y++) {
         maze[x][y] = 1;
       }
     }
-
+    
+    //Create a random starting position that is on an even row and an even column
     int r = 0, c = 0;
     while (r%2==0) {
       r=round(random(0, mazeWidth-1));
@@ -23,68 +24,65 @@ class MazeGenerator {
     while (c%2==0) {
       c=round(random(0, mazeHeight-1));
     }
-
+    
+    //Set the starting position to be a floor tile
     maze[r][c] = 0;
-
-    recursion(r, c, maze);
+    
+    createPath(r, c, maze);
 
     return maze;
   }
 
-   private void recursion(int r, int c, int[][] maze) {
-    if (r > maze.length || c > maze[0].length) {
-      return;
-    }
-
+   private void createPath(int r, int c, int[][] maze) {
+    //Get an array of the 4 different directions in a randomized order
     Integer[] randDirs = generateRandomDirections();
-
+    
+    //Cycle through the different directions
     for (int i = 0; i<randDirs.length; i++) {
       switch(randDirs[i]) {
       case 1://up
-        if (r-2<= 0 || !(r-2<maze.length && c<maze[0].length)) {
+        //Check if this direction will cross the edge of the maze, if it does, continue to the next direction
+        if (checkTile(r-2,c,maze)) {
           continue;
         }
-        if (maze[r-2][c] !=0) {
-          maze[r-2][c] = 0;
-          maze[r-1][c] = 0;
-          recursion(r-2, c, maze);
-        }
+        nextTile(r,c,-2,0,maze);
         break;
       case 2://right
-        if (c+2<= 0 || !(r<maze.length && c+2<maze[0].length)) {
+        if (checkTile(r,c+2,maze)) {
           continue;
         }
-        if (maze[r][c+2] !=0) {
-          maze[r][c+2] = 0;
-          maze[r][c+1] = 0;
-          recursion(r, c+2, maze);
-        }
+        nextTile(r,c,0,2,maze);
         break;
       case 3://down
-        if (r+2<= 0 || !(r+2<maze.length && c<maze[0].length)) {
+        if (checkTile(r+2,c,maze)) {
           continue;
         }
-        if (maze[r+2][c] !=0) {
-          maze[r+2][c] = 0;
-          maze[r+1][c] = 0;
-          recursion(r+2, c, maze);
-        }
+        nextTile(r,c,2,0,maze);
         break;
       case 4://left
-        if (c-2<= 0 || !(r<maze.length && c-2<maze[0].length)) {
+        if (checkTile(r,c-2, maze)) {
           continue;
         }
-        if (maze[r][c-2] !=0) {
-          maze[r][c-2] = 0;
-          maze[r][c-1] = 0;
-          recursion(r, c-2, maze);
-        }
+        nextTile(r,c,0,-2,maze);
         break;
       }
     }
   }
+  
+  private boolean checkTile(int xTile, int yTile, int[][] maze) {
+    return (xTile <= 0 || xTile >= maze.length || yTile <= 0 || yTile >= maze[0].length);
+  }
+  
+  //Check if there is not already a path in this direction, if there is not, create a path in this direction and start creating a path from that tile.
+  private void nextTile(int xTile, int yTile, int xMove, int yMove, int[][] maze){
+    if(maze[xTile+xMove][yTile+yMove] != 0){
+      maze[xTile+xMove][yTile+yMove] = 0;
+      maze[xTile+xMove/2][yTile+yMove/2] = 0;
+      createPath(xTile+xMove, yTile+yMove, maze);
+    }
+  }
 
-  Integer[] generateRandomDirections() {
+  private Integer[] generateRandomDirections() {
     ArrayList<Integer> dirs = new ArrayList<Integer>();
     for (int i = 0; i<4; i++) {
       dirs.add(i+1);

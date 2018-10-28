@@ -11,6 +11,8 @@ class Node{
     if(weight == 2){
       weight = 5;
     }
+    
+    //Set the image of the node to the image corresponding to its weight
     switch(weight) {
       case 1:
         nodeImage = weight1;
@@ -29,6 +31,8 @@ class Node{
     image(nodeImage, xPos*tileSize, yPos*tileSize, tileSize, tileSize);
   }
   
+  
+  //Get and set variables of the node
   
   void setGScore(int score){
     this.gScore = score;
@@ -66,6 +70,7 @@ class Node{
     return parent;
   }
   
+  //Check if a specific point is on this node
   boolean pointIsOnNode(float xPoint, float yPoint){
     return (xPoint >= xPos*tileSize && xPoint < (xPos+1)*tileSize && yPoint >= yPos*tileSize && yPoint < (yPos+1)*tileSize);
   }
