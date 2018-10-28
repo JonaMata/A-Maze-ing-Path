@@ -1,6 +1,5 @@
 /*  A-Maze-ing by Jonathan Matarazzi 28-10-2018
- This 
- 
+ An artwork turned into an interactive maze
  */
 
 
@@ -21,15 +20,15 @@ int gridWidth, gridHeight;
 
 PImage zeroWall, singleWall, doubleWall, doubleStraightWall, tripleWall, quadrupleWall;
 
-PImage weight1, weight2, weight3;
+PImage weight1, weight2;
 
 PImage characterImage;
 
 Character character;
 
 void setup() {
-  size(600, 600, P3D);
-  //fullScreen(P3D);
+  //size(600, 600, P3D);
+  fullScreen(P3D);
 
   pathfinder = new Pathfinder();
   mazeGenerator = new MazeGenerator();
@@ -45,7 +44,6 @@ void setup() {
 
   weight1 = loadImage("weight_1.png");
   weight2 = loadImage("weight_2.png");
-  weight3 = loadImage("weight_3.png");
 
   characterImage = loadImage("character.png");
 
@@ -69,17 +67,6 @@ void setup() {
   tiles = mazeGenerator.createMaze(gridWidth, gridHeight);
 
 
-  /*
-  tiles = new int[gridWidth][gridHeight];
-   for (int i = 0; i<gridWidth; i++) {
-   for (int j=0; j<gridHeight; j++) {
-   tiles[i][j]=round(random(-0.5, 1));
-   }
-   }
-   */
-
-
-
   //Create nodes for all the floor tiles
   nodes = new ArrayList<Node>();
   for (int x =0; x<tiles.length; x++) {
@@ -97,7 +84,6 @@ void setup() {
 }
 
 void draw() {
-  println(mouseX+" , "+mouseY);
   background(250);
 
   //Draw each waal tile

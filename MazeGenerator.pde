@@ -17,23 +17,23 @@ class MazeGenerator {
     }
     
     //Create a random starting position that is on an even row and an even column
-    int r = 0, c = 0;
-    while (r%2==0) {
-      r=round(random(0, mazeWidth-1));
+    int tileX = 0, tileY = 0;
+    while (tileX%2==0) {
+      tileX=round(random(0, mazeWidth-1));
     }
-    while (c%2==0) {
-      c=round(random(0, mazeHeight-1));
+    while (tileY%2==0) {
+      tileY=round(random(0, mazeHeight-1));
     }
     
     //Set the starting position to be a floor tile
-    maze[r][c] = 0;
+    maze[tileX][tileY] = 0;
     
-    createPath(r, c, maze);
+    createPath(tileX, tileY, maze);
 
     return maze;
   }
 
-   private void createPath(int r, int c, int[][] maze) {
+   private void createPath(int tileX, int tileY, int[][] maze) {
     //Get an array of the 4 different directions in a randomized order
     Integer[] randDirs = generateRandomDirections();
     
@@ -42,28 +42,28 @@ class MazeGenerator {
       switch(randDirs[i]) {
       case 1://up
         //Check if this direction will cross the edge of the maze, if it does, continue to the next direction
-        if (checkTile(r-2,c,maze)) {
+        if (checkTile(tileX-2,tileY,maze)) {
           continue;
         }
-        nextTile(r,c,-2,0,maze);
+        nextTile(tileX,tileY,-2,0,maze);
         break;
       case 2://right
-        if (checkTile(r,c+2,maze)) {
+        if (checkTile(tileX,tileY+2,maze)) {
           continue;
         }
-        nextTile(r,c,0,2,maze);
+        nextTile(tileX,tileY,0,2,maze);
         break;
       case 3://down
-        if (checkTile(r+2,c,maze)) {
+        if (checkTile(tileX+2,tileY,maze)) {
           continue;
         }
-        nextTile(r,c,2,0,maze);
+        nextTile(tileX,tileY,2,0,maze);
         break;
       case 4://left
-        if (checkTile(r,c-2, maze)) {
+        if (checkTile(tileX,tileY-2, maze)) {
           continue;
         }
-        nextTile(r,c,0,-2,maze);
+        nextTile(tileX,tileY,0,-2,maze);
         break;
       }
     }

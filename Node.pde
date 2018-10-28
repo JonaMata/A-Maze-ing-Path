@@ -20,9 +20,6 @@ class Node{
       case 5:
         nodeImage = weight2;
         break;
-      case 3:
-        nodeImage = weight3;
-        break;
     }
   }
   
