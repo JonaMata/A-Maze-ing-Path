@@ -65,4 +65,8 @@ class Node{
   Node getParent() {
     return parent;
   }
+  
+  boolean pointIsOnNode(float xPoint, float yPoint){
+    return (xPoint >= xPos*tileSize && xPoint < (xPos+1)*tileSize && yPoint >= yPos*tileSize && yPoint < (yPos+1)*tileSize);
+  }
 }

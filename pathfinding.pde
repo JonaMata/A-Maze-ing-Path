@@ -1,5 +1,9 @@
 import java.util.Collections;
 
+Pathfinder pathfinder;
+MazeGenerator mazeGenerator;
+
+
 int[][] tiles;
 ArrayList<Node> nodes;
 int tileSize = 50;
@@ -16,8 +20,11 @@ Character character;
 void setup() {
   //size(600, 600);
   fullScreen(P3D);
+  
+  pathfinder = new Pathfinder();
+  mazeGenerator = new MazeGenerator();
 
-  zeroWall = loadImage("weight_3.png");
+  zeroWall = loadImage("zero_wall.png");
   singleWall = loadImage("single_wall.png");
   doubleWall = loadImage("double_wall.png");
   doubleStraightWall = loadImage("double_straight_wall.png");
@@ -30,7 +37,7 @@ void setup() {
 
   characterImage = loadImage("character.png");
 
-  character = new Character(-tileSize, -tileSize, tileSize);
+  character = new Character(-tileSize, -tileSize);
 
   gridWidth = width/tileSize;
   if (gridWidth % 2 == 0) {
@@ -41,7 +48,7 @@ void setup() {
     gridHeight-=1;
   }
 
-  tiles = createMaze(gridWidth, gridHeight);
+  tiles = mazeGenerator.createMaze(gridWidth, gridHeight);
 
 
   /*
@@ -107,7 +114,7 @@ void draw() {
   for (Node node : nodes) {
     node.display();
   }
-
+  character.setSpeed(nodes);
   character.update();
   character.display();
 }
@@ -196,7 +203,7 @@ void mousePressed() {
 
 
             if (start != null && end != null) {
-              character.setPath(findPath(start, end, nodes));
+              character.setPath(pathfinder.findPath(start, end, nodes));
             }
           }
         }
@@ -216,7 +223,7 @@ void mousePressed() {
       }
     }
     if (start != null && end != null) {
-      character.setPath(findPath(start, end, nodes));
+      character.setPath(pathfinder.findPath(start, end, nodes));
       character.setDest((int)end.getPos().x, (int)end.getPos().y);
     }
   }
@@ -227,215 +234,4 @@ void mousePressed() {
 void keyPressed() {
   if (key == ' ') {
   }
-}
-
-
-//A* pathfinding algorithm
-
-ArrayList<Node> findPath(Node start, Node end, ArrayList<Node> nodes) {
-  ArrayList<Node> path = new ArrayList<Node>();
-  ArrayList<Node> openList = new ArrayList<Node>();
-  ArrayList<Node> closedList = new ArrayList<Node>();
-
-  openList.add(start);
-
-  do {
-
-    Node currentNode = openList.get(0);
-    for (Node openNode : openList) {
-      if (openNode.getFScore() < currentNode.getFScore()) {
-        currentNode = openNode;
-      }
-    }
-
-    closedList.add(currentNode);
-    openList.remove(currentNode);
-
-    boolean pathFound = false;
-    for (Node closedNode : closedList) {
-      if (closedNode.getPos().x == end.getPos().x && closedNode.getPos().y == end.getPos().y) {
-        pathFound = true;
-      }
-    }
-
-    if (pathFound) {
-      break;
-    }
-
-    ArrayList<Node> adjacentNodes = new ArrayList<Node>();
-    for (Node node : nodes) {
-      if (PVector.dist(node.getPos(), currentNode.getPos()) <= 1) {
-        adjacentNodes.add(node);
-      }
-    }
-
-    for (Node adjacentNode : adjacentNodes) {
-      boolean isInClosedList = false;
-      for (Node closedNode : closedList) {
-        if (adjacentNode.getPos().x == closedNode.getPos().x && adjacentNode.getPos().y == closedNode.getPos().y) {
-          isInClosedList = true;
-        }
-      }
-      if (isInClosedList) {
-        continue;
-      }
-
-      boolean isInOpenList = false;
-      for (Node openNode : openList) {
-        if (openNode.getPos().x == adjacentNode.getPos().x && openNode.getPos().y == adjacentNode.getPos().y) {
-          isInOpenList = true;
-        }
-      }
-
-
-      int gScore = currentNode.getGScore()+adjacentNode.getWeight();
-
-      if (!isInOpenList) {
-        int hScore = (int) abs(adjacentNode.getPos().x-end.getPos().x)+(int) abs(adjacentNode.getPos().y-end.getPos().y);
-        adjacentNode.setGScore(gScore);
-        adjacentNode.setHScore(hScore);
-        adjacentNode.setParent(currentNode);
-        openList.add(adjacentNode);
-        println("Added node "+closedList.size());
-      } else {
-        if (gScore<adjacentNode.getGScore()) {
-          adjacentNode.setParent(currentNode);
-        }
-      }
-    }
-  } while (openList.size()>0);
-
-
-  Node currentNode = null;
-  for (Node node : closedList) {
-    if (node.getPos().x == end.getPos().x && node.getPos().y == end.getPos().y) {
-      currentNode = node;
-    }
-  }
-
-  while (!(currentNode.getPos().x == start.getPos().x && currentNode.getPos().y == start.getPos().y) && currentNode != null) {
-    path.add(currentNode);
-    Node newNode = null;
-    for (Node node : closedList) {
-      if (currentNode.getParent().getPos().x == node.getPos().x && currentNode.getParent().getPos().y == node.getPos().y) {
-        newNode = node;
-      }
-    }
-    currentNode = newNode;
-  }
-
-
-  println();
-  println();
-  println("Path:");
-  println();
-  for (Node node : path) {
-    println("x:"+node.getPos().x+" y:"+node.getPos().y+" parent: x:"+node.getParent().getPos().x+" y:"+node.getParent().getPos().y);
-  }
-
-  return path;
-}
-
-
-
-
-
-
-
-
-
-
-
-/*Depth First Search Algorithm to create maze
- http://www.migapro.com/depth-first-search/
- A-Maze-ing
- */
-
-
-
-int[][] createMaze(int mazeWidth, int mazeHeight) {
-  int[][] maze = new int[mazeWidth][mazeHeight];
-
-  for (int x = 0; x<maze.length; x++) {
-    for (int y = 0; y<maze[x].length; y++) {
-      maze[x][y] = 1;
-    }
-  }
-
-  int r = 0, c = 0;
-  while (r%2==0) {
-    r=round(random(0, mazeWidth-1));
-  }
-  while (c%2==0) {
-    c=round(random(0, mazeHeight-1));
-  }
-
-  maze[r][c] = 0;
-
-  recursion(r, c, maze);
-
-  return maze;
-}
-
-void recursion(int r, int c, int[][] maze) {
-  if (r > maze.length || c > maze[0].length) {
-    return;
-  }
-
-  Integer[] randDirs = generateRandomDirections();
-
-  for (int i = 0; i<randDirs.length; i++) {
-    switch(randDirs[i]) {
-    case 1://up
-      if (r-2<= 0 || !(r-2<maze.length && c<maze[0].length)) {
-        continue;
-      }
-      if (maze[r-2][c] !=0) {
-        maze[r-2][c] = 0;
-        maze[r-1][c] = 0;
-        recursion(r-2, c, maze);
-      }
-      break;
-    case 2://right
-      if (c+2<= 0 || !(r<maze.length && c+2<maze[0].length)) {
-        continue;
-      }
-      if (maze[r][c+2] !=0) {
-        maze[r][c+2] = 0;
-        maze[r][c+1] = 0;
-        recursion(r, c+2, maze);
-      }
-      break;
-    case 3://down
-      if (r+2<= 0 || !(r+2<maze.length && c<maze[0].length)) {
-        continue;
-      }
-      if (maze[r+2][c] !=0) {
-        maze[r+2][c] = 0;
-        maze[r+1][c] = 0;
-        recursion(r+2, c, maze);
-      }
-      break;
-    case 4://left
-      if (c-2<= 0 || !(r<maze.length && c-2<maze[0].length)) {
-        continue;
-      }
-      if (maze[r][c-2] !=0) {
-        maze[r][c-2] = 0;
-        maze[r][c-1] = 0;
-        recursion(r, c-2, maze);
-      }
-      break;
-    }
-  }
-}
-
-Integer[] generateRandomDirections() {
-  ArrayList<Integer> dirs = new ArrayList<Integer>();
-  for (int i = 0; i<4; i++) {
-    dirs.add(i+1);
-  }
-  Collections.shuffle(dirs);
-
-  return dirs.toArray(new Integer[4]);
 }
